@@ -1,0 +1,10 @@
+apply plugin: 'java'
+
+dependencies {
+    compile group: 'io.grpc', name: 'grpc-netty', version: '1.13.1'
+    compile group: 'io.grpc', name: 'grpc-stub', version: '1.13.1'
+    compile group: 'org.springframework', name: 'spring-context', version: '5.0.3.RELEASE'
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+    compile group: 'com.thoughtworks.xstream', name: 'xstream', version: '1.4.10'
+    compile group: 'com.io7m.xom', name: 'xom', version: '1.2.10'
+}
