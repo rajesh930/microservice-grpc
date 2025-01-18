@@ -22,6 +22,7 @@ public @interface MicroService {
 
     /**
      * Marshaller factory to create {@link io.grpc.MethodDescriptor.Marshaller Marshaller}
+     * If not set {@link co.ontic.ms.core.marshaller.DefaultMarshallerFactory} is used
      */
     Class<? extends MarshallerFactory> marshaller() default MarshallerFactory.class;
 }

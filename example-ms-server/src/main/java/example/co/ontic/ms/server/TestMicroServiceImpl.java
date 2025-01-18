@@ -14,7 +14,15 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @SuppressWarnings("CallToPrintStackTrace")
 public class TestMicroServiceImpl implements TestMicroService {
-    private AtomicInteger counter = new AtomicInteger(0);
+    private final AtomicInteger counter = new AtomicInteger(0);
+
+    public int resetCounter() {
+        return counter.getAndSet(0);
+    }
+
+    public int getCounter() {
+        return counter.get();
+    }
 
     @Override
     public String hello(String name) {
@@ -26,12 +34,12 @@ public class TestMicroServiceImpl implements TestMicroService {
     @Override
     public void helloVoid(String name) {
         System.out.println("Request came !!" + name);
+        counter.incrementAndGet();
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        counter.incrementAndGet();
     }
 
     @Override
@@ -42,17 +50,20 @@ public class TestMicroServiceImpl implements TestMicroService {
             public void update(String data) {
                 System.out.println("bidi request " + data);
                 serverResponse.update("Hi " + data);
-                serverResponse.update2((long) count.incrementAndGet());
+                serverResponse.update2((long) count.getAndIncrement());
+                counter.incrementAndGet();
             }
 
             @Override
             public void error(Throwable t) {
                 serverResponse.error(t);
+                counter.incrementAndGet();
             }
 
             @Override
             public void finish() {
                 serverResponse.finish();
+                counter.incrementAndGet();
             }
         };
     }
@@ -64,6 +75,7 @@ public class TestMicroServiceImpl implements TestMicroService {
             serverResponse.update2((long) i);
         }
         serverResponse.finish();
+        counter.incrementAndGet();
     }
 
     @Override
@@ -73,6 +85,7 @@ public class TestMicroServiceImpl implements TestMicroService {
             serverResponse.update2((long) i);
         }
         serverResponse.finish();
+        counter.incrementAndGet();
     }
 
     @Override
@@ -81,26 +94,31 @@ public class TestMicroServiceImpl implements TestMicroService {
             @Override
             public void update(String data) {
                 System.out.println("Client Stream String " + data);
+                counter.incrementAndGet();
             }
 
             @Override
             public void update2(Long data) {
                 System.out.println("Client Stream Long " + data);
+                counter.incrementAndGet();
             }
 
             @Override
             public void update3(CustomObject data) {
                 System.out.println("Client Stream CustomObject " + data);
+                counter.incrementAndGet();
             }
 
             @Override
             public void error(Throwable t) {
                 t.printStackTrace();
+                counter.incrementAndGet();
             }
 
             @Override
             public void finish() {
                 System.out.println("Client Stream Finish!!!");
+                counter.incrementAndGet();
             }
         };
     }

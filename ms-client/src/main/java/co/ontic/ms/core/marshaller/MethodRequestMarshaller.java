@@ -51,6 +51,9 @@ public class MethodRequestMarshaller implements Marshaller<Request> {
     @Override
     public InputStream stream(Request request) {
         Object[] args = (Object[]) request.payload();
+        if (args == null || args.length == 0) {
+            return new ByteArrayInputStream(new byte[0]);
+        }
         ByteArrayOutputStream bos = new ByteArrayOutputStream(2048);
         for (int i = 0; i < args.length; i++) {
             if (serDes[i] == null) {

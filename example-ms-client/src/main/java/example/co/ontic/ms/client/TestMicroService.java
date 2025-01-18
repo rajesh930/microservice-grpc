@@ -15,6 +15,12 @@ import co.ontic.ms.core.TriObserver;
 public interface TestMicroService {
 
     @MicroServiceMethod
+    int resetCounter();
+
+    @MicroServiceMethod
+    int getCounter();
+
+    @MicroServiceMethod
     String hello(String name);
 
     @MicroServiceMethod(async = true)
