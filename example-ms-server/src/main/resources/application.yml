@@ -1,0 +1,13 @@
+ontic:
+  ms:
+    server:
+      port: 50052
+      serverName: ms-test-server
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always

@@ -1,3 +1,6 @@
 rootProject.name = 'microservice-grpc'
-include 'microservice'
+include 'ms-server'
+include 'ms-client'
+include 'example-ms-server'
+include 'example-ms-client'
 

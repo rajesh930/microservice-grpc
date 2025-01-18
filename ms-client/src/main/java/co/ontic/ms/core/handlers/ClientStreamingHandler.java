@@ -1,0 +1,61 @@
+package co.ontic.ms.core.handlers;
+
+import co.ontic.ms.core.MicroServiceInfo.MethodInfo;
+import co.ontic.ms.core.Observer;
+import co.ontic.ms.core.Request;
+import co.ontic.ms.core.Response;
+import co.ontic.ms.core.TriObserver;
+import co.ontic.ms.core.observers.RequestToStreamObserver;
+import co.ontic.ms.core.observers.StreamToRequestObserver;
+import co.ontic.ms.core.observers.StreamToResponseObserver.NoopStreamObserver;
+import io.grpc.*;
+import io.grpc.stub.ClientCalls;
+import io.grpc.stub.ServerCalls;
+import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * @author rajesh
+ * @since 14/01/25 20:36
+ */
+public class ClientStreamingHandler implements ServerCallHandler<Request, Response> {
+    private static final Logger logger = LoggerFactory.getLogger(ClientStreamingHandler.class);
+
+    private final MethodInfo methodInfo;
+    private final Object microService;
+    private final ServerCallHandler<Request, Response> delegate;
+
+    public ClientStreamingHandler(MethodInfo methodInfo, Object microService) {
+        this.methodInfo = methodInfo;
+        this.microService = microService;
+        this.delegate = createHandler();
+    }
+
+    @Override
+    public ServerCall.Listener<Request> startCall(ServerCall<Request, Response> call, Metadata headers) {
+        return delegate.startCall(call, headers);
+    }
+
+    public static TriObserver<Object, Object, Object> doAsyncCall(
+            ManagedChannel channel, MethodDescriptor<Request, Response> methodDescriptor) {
+        StreamObserver<Request> streamObserver = ClientCalls.asyncClientStreamingCall(channel.newCall(methodDescriptor, CallOptions.DEFAULT),
+                new NoopStreamObserver<>());
+        return new RequestToStreamObserver(streamObserver);
+    }
+
+    private ServerCallHandler<Request, Response> createHandler() {
+        return ServerCalls.asyncClientStreamingCall(
+                responseObserver -> {
+                    try {
+                        //noinspection unchecked
+                        Observer<Object> observer = (Observer<Object>) methodInfo.method().invoke(microService);
+                        return new StreamToRequestObserver(observer);
+                    } catch (Throwable t) {
+                        logger.error("Error calling {}", methodInfo.method(), t);
+                        responseObserver.onError(t);
+                        return null;
+                    }
+                });
+    }
+}

@@ -1,0 +1,6 @@
+ontic:
+  ms:
+    client:
+      serviceRegistry:
+        TestMicroService:
+          address: 'localhost:50052'
