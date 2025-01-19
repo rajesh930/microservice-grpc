@@ -1,11 +1,13 @@
 package co.ontic.ms.server;
 
 import co.ontic.ms.annotations.MicroService;
+import co.ontic.ms.client.ApplicationServices;
 import co.ontic.ms.core.MethodDescriptorProvider;
 import io.grpc.Grpc;
 import io.grpc.InsecureServerCredentials;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -49,7 +51,14 @@ public class MicroServerAutoConfig implements DisposableBean {
         for (Object microService : services.values()) {
             serverBuilder.addService(new MicroServer(microService, methodDescriptorProvider));
         }
-        serverBuilder.intercept(new UserContextServerInterceptor());
+        if (ApplicationServices.getUserContextHandler() != null) {
+            serverBuilder.intercept(new UserContextServerInterceptor());
+        }
+        if (serverProps.isPerfEnabled()) {
+            Map<String, MeterRegistry> beansOfType = ApplicationServices.getApplicationContext().getBeansOfType(MeterRegistry.class);
+            beansOfType.values().stream().findFirst().ifPresent(
+                    meterRegistry -> serverBuilder.intercept(new PerformanceMetricsInterceptor(meterRegistry)));
+        }
         server = serverBuilder.build();
         try {
             logger.info("Starting MicroService {} on port {}", serverName, port);

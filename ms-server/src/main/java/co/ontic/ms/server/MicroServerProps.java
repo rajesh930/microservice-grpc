@@ -23,7 +23,15 @@ public class MicroServerProps {
      */
     private int maxInboundMetadataSize = 30 * 1024;
 
+    /**
+     * Max inbound message size
+     */
     private int maxInboundMessageSize = 10 * 1024 * 1024;
+
+    /**
+     * If performance metric should be captured
+     */
+    private boolean perfEnabled = true;
 
     public String getServerName() {
         return serverName;
@@ -55,5 +63,13 @@ public class MicroServerProps {
 
     public void setMaxInboundMessageSize(int maxInboundMessageSize) {
         this.maxInboundMessageSize = maxInboundMessageSize;
+    }
+
+    public boolean isPerfEnabled() {
+        return perfEnabled;
+    }
+
+    public void setPerfEnabled(boolean perfEnabled) {
+        this.perfEnabled = perfEnabled;
     }
 }

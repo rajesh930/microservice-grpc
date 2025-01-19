@@ -226,6 +226,7 @@ public class MSTestClient implements CommandLineRunner {
                 counter.incrementAndGet();
             }
         });
+        Thread.sleep(1000);
         Assert.isTrue(contextPropagation.lastUser() == userId, "Expected user not received");
         for (int i = 0; i < 100; i++) {
             toServer.update("rajesh " + i);
@@ -303,6 +304,7 @@ public class MSTestClient implements CommandLineRunner {
 
         userId = setRandomUserInContext();
         TriObserver<String, Long, String> toServerTri = contextPropagation.clientStream();
+        Thread.sleep(1000);
         Assert.isTrue(contextPropagation.lastUser() == userId, "Expected user not received");
         for (int i = 0; i < 100; i++) {
             toServerTri.update("rajesh " + i);
