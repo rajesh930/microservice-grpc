@@ -1,5 +1,6 @@
 package co.ontic.ms.client;
 
+import co.ontic.ms.core.UserContextClientInterceptor;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.slf4j.Logger;
@@ -58,6 +59,9 @@ public class DefaultChannelFactory implements ChannelFactory {
         }
         if (serviceEndpoint.getServiceConfig() != null) {
             managedChannelBuilder.defaultServiceConfig(serviceEndpoint.getServiceConfig());
+        }
+        if (ApplicationServices.getUserContextHandler() != null) {
+            managedChannelBuilder.intercept(new UserContextClientInterceptor(ApplicationServices.getUserContextHandler()));
         }
         return managedChannelBuilder.build();
     }

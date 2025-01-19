@@ -8,13 +8,13 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 
-import javax.annotation.PreDestroy;
 import java.util.Map;
 
 /**
@@ -23,7 +23,7 @@ import java.util.Map;
  */
 @Configuration
 @EnableConfigurationProperties(MicroServerProps.class)
-public class MicroServerAutoConfig {
+public class MicroServerAutoConfig implements DisposableBean {
     private static final Logger logger = LoggerFactory.getLogger(MicroServerAutoConfig.class);
 
     private final MicroServerProps serverProps;
@@ -41,12 +41,15 @@ public class MicroServerAutoConfig {
         String serverName = serverProps.getServerName() == null ? "Not_Provided" : serverProps.getServerName();
         int port = serverProps.getPort() == null ? 50051 : serverProps.getPort();
         ServerBuilder<?> serverBuilder = Grpc.newServerBuilderForPort(port, InsecureServerCredentials.create());
+        serverBuilder.maxInboundMetadataSize(serverProps.getMaxInboundMetadataSize());
+        serverBuilder.maxInboundMessageSize(serverProps.getMaxInboundMessageSize());
 
         Map<String, Object> services = event.getApplicationContext().getBeansWithAnnotation(MicroService.class);
 
         for (Object microService : services.values()) {
             serverBuilder.addService(new MicroServer(microService, methodDescriptorProvider));
         }
+        serverBuilder.intercept(new UserContextServerInterceptor());
         server = serverBuilder.build();
         try {
             logger.info("Starting MicroService {} on port {}", serverName, port);
@@ -58,8 +61,8 @@ public class MicroServerAutoConfig {
         }
     }
 
-    @PreDestroy
-    public void stopServer() {
+    @Override
+    public void destroy() {
         if (server == null) {
             return;
         }

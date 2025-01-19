@@ -1,8 +1,9 @@
 ontic:
   ms:
     server:
-      port: 50052
+      port: 50051
       serverName: ms-test-server
+      maxInboundMetadataSize: 30720
 management:
   endpoints:
     web:

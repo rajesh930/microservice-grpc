@@ -18,6 +18,13 @@ public class MicroServerProps {
      */
     private Integer port;
 
+    /**
+     * Max inbound metadata/header size
+     */
+    private int maxInboundMetadataSize = 30 * 1024;
+
+    private int maxInboundMessageSize = 10 * 1024 * 1024;
+
     public String getServerName() {
         return serverName;
     }
@@ -32,5 +39,21 @@ public class MicroServerProps {
 
     public void setPort(Integer port) {
         this.port = port;
+    }
+
+    public int getMaxInboundMetadataSize() {
+        return maxInboundMetadataSize;
+    }
+
+    public void setMaxInboundMetadataSize(int maxInboundMetadataSize) {
+        this.maxInboundMetadataSize = maxInboundMetadataSize;
+    }
+
+    public int getMaxInboundMessageSize() {
+        return maxInboundMessageSize;
+    }
+
+    public void setMaxInboundMessageSize(int maxInboundMessageSize) {
+        this.maxInboundMessageSize = maxInboundMessageSize;
     }
 }

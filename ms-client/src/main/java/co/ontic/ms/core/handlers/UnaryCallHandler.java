@@ -1,14 +1,18 @@
 package co.ontic.ms.core.handlers;
 
+import co.ontic.ms.client.ApplicationServices;
 import co.ontic.ms.core.MicroServiceInfo.MethodInfo;
 import co.ontic.ms.core.Request;
 import co.ontic.ms.core.Response;
+import co.ontic.ms.core.UserContextHandler;
 import co.ontic.ms.core.observers.StreamToResponseObserver.NoopStreamObserver;
 import io.grpc.*;
 import io.grpc.stub.ClientCalls;
 import io.grpc.stub.ServerCalls;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.function.Supplier;
 
 /**
  * Unary calls where client sends a request and receives a response
@@ -48,17 +52,27 @@ public class UnaryCallHandler implements ServerCallHandler<Request, Response> {
     private ServerCallHandler<Request, Response> createHandler() {
         return ServerCalls.asyncUnaryCall(
                 (request, responseObserver) -> {
-                    try {
-                        Object response = methodInfo.method().invoke(microService, (Object[]) request.payload());
-                        if (!methodInfo.isVoidReturn() && !methodInfo.async()) {
-                            responseObserver.onNext(new Response(response));
-                        } else {
-                            responseObserver.onNext(new Response(null));
+                    Supplier<Void> supplier = () -> {
+                        try {
+                            Object response = methodInfo.method().invoke(microService, (Object[]) request.payload());
+                            if (!methodInfo.isVoidReturn() && !methodInfo.async()) {
+                                responseObserver.onNext(new Response(response));
+                            } else {
+                                responseObserver.onNext(new Response(null));
+                            }
+                            responseObserver.onCompleted();
+                        } catch (Throwable t) {
+                            logger.error("Error calling {}", methodInfo.method(), t);
+                            responseObserver.onError(t);
                         }
-                        responseObserver.onCompleted();
-                    } catch (Throwable t) {
-                        logger.error("Error calling {}", methodInfo.method(), t);
-                        responseObserver.onError(t);
+                        return null;
+                    };
+
+                    if (ApplicationServices.getUserContextHandler() != null) {
+                        byte[] userContext = UserContextHandler.userContext.get();
+                        ApplicationServices.getUserContextHandler().executeInContext(userContext, supplier);
+                    } else {
+                        supplier.get();
                     }
                 });
     }

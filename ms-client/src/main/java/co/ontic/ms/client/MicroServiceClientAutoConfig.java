@@ -2,6 +2,7 @@ package co.ontic.ms.client;
 
 import co.ontic.ms.core.DefaultMethodDescriptorProvider;
 import co.ontic.ms.core.MethodDescriptorProvider;
+import co.ontic.ms.core.UserContextHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -9,6 +10,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
+
+import java.util.Map;
 
 /**
  * @author rajesh
@@ -44,12 +47,15 @@ public class MicroServiceClientAutoConfig {
 
     @EventListener
     public void setupClient(ContextRefreshedEvent event) {
-        ApplicationServices.defaultChannelFactory = event.getApplicationContext().getBean(
-                "defaultChannelFactory", ChannelFactory.class);
-        ApplicationServices.methodDescriptorProvider = event.getApplicationContext().getBean(
-                "defaultMethodDescriptorProvider", MethodDescriptorProvider.class);
-        ApplicationServices.objectMapper = event.getApplicationContext().getBean(
-                "jacksonObjectMapper", ObjectMapper.class);
-        ApplicationServices.applicationContext = event.getApplicationContext();
+        ApplicationServices.setDefaultChannelFactory(event.getApplicationContext().getBean(
+                "defaultChannelFactory", ChannelFactory.class));
+        ApplicationServices.setMethodDescriptorProvider(event.getApplicationContext().getBean(
+                "defaultMethodDescriptorProvider", MethodDescriptorProvider.class));
+        ApplicationServices.setObjectMapper(event.getApplicationContext().getBean(
+                "jacksonObjectMapper", ObjectMapper.class));
+        ApplicationServices.setApplicationContext(event.getApplicationContext());
+
+        Map<String, UserContextHandler> beansOfType = event.getApplicationContext().getBeansOfType(UserContextHandler.class);
+        beansOfType.values().stream().findFirst().ifPresent(ApplicationServices::setUserContextHandler);
     }
 }

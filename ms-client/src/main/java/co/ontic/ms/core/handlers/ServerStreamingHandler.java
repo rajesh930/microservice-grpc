@@ -1,9 +1,11 @@
 package co.ontic.ms.core.handlers;
 
+import co.ontic.ms.client.ApplicationServices;
 import co.ontic.ms.core.MicroServiceInfo.MethodInfo;
 import co.ontic.ms.core.Observer;
 import co.ontic.ms.core.Request;
 import co.ontic.ms.core.Response;
+import co.ontic.ms.core.UserContextHandler;
 import co.ontic.ms.core.observers.ResponseToStreamObserver;
 import co.ontic.ms.core.observers.StreamToResponseObserver;
 import io.grpc.*;
@@ -11,6 +13,8 @@ import io.grpc.stub.ClientCalls;
 import io.grpc.stub.ServerCalls;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.function.Supplier;
 
 /**
  * @author rajesh
@@ -46,13 +50,22 @@ public class ServerStreamingHandler implements ServerCallHandler<Request, Respon
     private ServerCallHandler<Request, Response> createHandler() {
         return ServerCalls.asyncServerStreamingCall(
                 (request, responseObserver) -> {
-                    try {
-                        Object[] args = (Object[]) request.payload();
-                        args[0] = new ResponseToStreamObserver(responseObserver);
-                        methodInfo.method().invoke(microService, args);
-                    } catch (Throwable t) {
-                        logger.error("Error calling {}", methodInfo.method(), t);
-                        responseObserver.onError(t);
+                    Supplier<Void> supplier = () -> {
+                        try {
+                            Object[] args = (Object[]) request.payload();
+                            args[0] = new ResponseToStreamObserver(responseObserver);
+                            methodInfo.method().invoke(microService, args);
+                        } catch (Throwable t) {
+                            logger.error("Error calling {}", methodInfo.method(), t);
+                            responseObserver.onError(t);
+                        }
+                        return null;
+                    };
+                    if (ApplicationServices.getUserContextHandler() != null) {
+                        byte[] userContext = UserContextHandler.userContext.get();
+                        ApplicationServices.getUserContextHandler().executeInContext(userContext, supplier);
+                    } else {
+                        supplier.get();
                     }
                 });
     }

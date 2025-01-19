@@ -3,4 +3,6 @@ ontic:
     client:
       serviceRegistry:
         TestMicroService:
-          address: 'localhost:50052'
+          address: 'localhost:50051'
+        contextService:
+          address: 'localhost:50051'

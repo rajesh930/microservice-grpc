@@ -1,10 +1,8 @@
 package co.ontic.ms.core.handlers;
 
+import co.ontic.ms.client.ApplicationServices;
 import co.ontic.ms.core.MicroServiceInfo.MethodInfo;
-import co.ontic.ms.core.Observer;
-import co.ontic.ms.core.Request;
-import co.ontic.ms.core.Response;
-import co.ontic.ms.core.TriObserver;
+import co.ontic.ms.core.*;
 import co.ontic.ms.core.observers.RequestToStreamObserver;
 import co.ontic.ms.core.observers.ResponseToStreamObserver;
 import co.ontic.ms.core.observers.StreamToRequestObserver;
@@ -15,6 +13,8 @@ import io.grpc.stub.ServerCalls;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.function.Supplier;
 
 /**
  * @author rajesh
@@ -51,15 +51,23 @@ public class BidiCallHandler implements ServerCallHandler<Request, Response> {
     private ServerCallHandler<Request, Response> createHandler() {
         return ServerCalls.asyncBidiStreamingCall(
                 responseObserver -> {
-                    try {
-                        //noinspection unchecked
-                        Observer<Object> observer = (Observer<Object>) methodInfo.method().invoke(microService,
-                                new ResponseToStreamObserver(responseObserver));
-                        return new StreamToRequestObserver(observer);
-                    } catch (Throwable t) {
-                        logger.error("Error calling {}", methodInfo.method(), t);
-                        responseObserver.onError(t);
-                        return null;
+                    Supplier<StreamObserver<Request>> supplier = () -> {
+                        try {
+                            //noinspection unchecked
+                            Observer<Object> observer = (Observer<Object>) methodInfo.method().invoke(microService,
+                                    new ResponseToStreamObserver(responseObserver));
+                            return new StreamToRequestObserver(observer);
+                        } catch (Throwable t) {
+                            logger.error("Error calling {}", methodInfo.method(), t);
+                            responseObserver.onError(t);
+                            return null;
+                        }
+                    };
+                    if (ApplicationServices.getUserContextHandler() != null) {
+                        byte[] userContext = UserContextHandler.userContext.get();
+                        return ApplicationServices.getUserContextHandler().executeInContext(userContext, supplier);
+                    } else {
+                        return supplier.get();
                     }
                 });
     }
