@@ -20,7 +20,7 @@ public interface TestMicroService {
     @MicroServiceMethod
     int getCounter();
 
-    @MicroServiceMethod
+    @MicroServiceMethod(timeoutMillis = 200)
     String hello(String name);
 
     @MicroServiceMethod(async = true)

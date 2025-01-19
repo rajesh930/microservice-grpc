@@ -39,10 +39,10 @@ public class BidiCallHandler implements ServerCallHandler<Request, Response> {
     }
 
     public static TriObserver<Object, Object, Object> doAsyncCall(
-            ManagedChannel channel, MethodDescriptor<Request, Response> methodDescriptor, Object[] args) {
+            ManagedChannel channel, MethodDescriptor<Request, Response> methodDescriptor, Object[] args, CallOptions callOptions) {
         //noinspection unchecked
         Observer<Object> observer = (Observer<Object>) args[0];
-        StreamObserver<Request> streamObserver = ClientCalls.asyncBidiStreamingCall(channel.newCall(methodDescriptor, CallOptions.DEFAULT),
+        StreamObserver<Request> streamObserver = ClientCalls.asyncBidiStreamingCall(channel.newCall(methodDescriptor, callOptions),
                 new StreamToResponseObserver(observer));
         return new RequestToStreamObserver(streamObserver);
 

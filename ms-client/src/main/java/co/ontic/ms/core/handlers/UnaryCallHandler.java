@@ -40,12 +40,14 @@ public class UnaryCallHandler implements ServerCallHandler<Request, Response> {
         return delegate.startCall(call, headers);
     }
 
-    public static void doAsyncCall(ManagedChannel channel, MethodDescriptor<Request, Response> methodDescriptor, Object[] args) {
-        ClientCalls.asyncUnaryCall(channel.newCall(methodDescriptor, CallOptions.DEFAULT), new Request(args), new NoopStreamObserver<>());
+    public static void doAsyncCall(ManagedChannel channel, MethodDescriptor<Request, Response> methodDescriptor, Object[] args,
+                                   CallOptions callOptions) {
+        ClientCalls.asyncUnaryCall(channel.newCall(methodDescriptor, callOptions), new Request(args), new NoopStreamObserver<>());
     }
 
-    public static Object doBlockingCall(ManagedChannel channel, MethodDescriptor<Request, Response> methodDescriptor, Object[] args) {
-        Response response = ClientCalls.blockingUnaryCall(channel, methodDescriptor, CallOptions.DEFAULT, new Request(args));
+    public static Object doBlockingCall(ManagedChannel channel, MethodDescriptor<Request, Response> methodDescriptor, Object[] args,
+                                        CallOptions callOptions) {
+        Response response = ClientCalls.blockingUnaryCall(channel, methodDescriptor, callOptions, new Request(args));
         return response.payload();
     }
 

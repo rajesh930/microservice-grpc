@@ -38,11 +38,12 @@ public class ServerStreamingHandler implements ServerCallHandler<Request, Respon
         return delegate.startCall(call, headers);
     }
 
-    public static void doAsyncCall(ManagedChannel channel, MethodDescriptor<Request, Response> methodDescriptor, Object[] args) {
+    public static void doAsyncCall(ManagedChannel channel, MethodDescriptor<Request, Response> methodDescriptor, Object[] args,
+                                   CallOptions callOptions) {
         //noinspection unchecked
         Observer<Object> observer = (Observer<Object>) args[0];
         args[0] = null;
-        ClientCalls.asyncServerStreamingCall(channel.newCall(methodDescriptor, CallOptions.DEFAULT),
+        ClientCalls.asyncServerStreamingCall(channel.newCall(methodDescriptor, callOptions),
                 new Request(args),
                 new StreamToResponseObserver(observer));
     }

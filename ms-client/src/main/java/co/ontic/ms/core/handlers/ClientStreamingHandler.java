@@ -38,8 +38,8 @@ public class ClientStreamingHandler implements ServerCallHandler<Request, Respon
     }
 
     public static TriObserver<Object, Object, Object> doAsyncCall(
-            ManagedChannel channel, MethodDescriptor<Request, Response> methodDescriptor) {
-        StreamObserver<Request> streamObserver = ClientCalls.asyncClientStreamingCall(channel.newCall(methodDescriptor, CallOptions.DEFAULT),
+            ManagedChannel channel, MethodDescriptor<Request, Response> methodDescriptor, CallOptions callOptions) {
+        StreamObserver<Request> streamObserver = ClientCalls.asyncClientStreamingCall(channel.newCall(methodDescriptor, callOptions),
                 new NoopStreamObserver<>());
         return new RequestToStreamObserver(streamObserver);
     }

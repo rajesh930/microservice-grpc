@@ -9,6 +9,7 @@ import co.ontic.ms.core.handlers.BidiCallHandler;
 import co.ontic.ms.core.handlers.ClientStreamingHandler;
 import co.ontic.ms.core.handlers.ServerStreamingHandler;
 import co.ontic.ms.core.handlers.UnaryCallHandler;
+import io.grpc.CallOptions;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import org.slf4j.Logger;
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import static io.grpc.MethodDescriptor.MethodType.*;
@@ -39,6 +41,9 @@ public class MicroServiceClient<T> implements InvocationHandler {
         this(service, null, null);
     }
 
+    /**
+     * For same service being deployed in different cluster to support for example different function
+     */
     public MicroServiceClient(Class<T> service, String serviceName) {
         this(service, serviceName, null);
     }
@@ -80,20 +85,24 @@ public class MicroServiceClient<T> implements InvocationHandler {
         if (logger.isDebugEnabled()) {
             logger.debug("Calling service [ {} ] on channel [ {} ]", methodDescriptor.getFullMethodName(), channel);
         }
+        CallOptions callOptions = CallOptions.DEFAULT;
+        if (methodInfo.timeout() != -1) {
+            callOptions = callOptions.withDeadlineAfter(methodInfo.timeout(), TimeUnit.MILLISECONDS);
+        }
         try {
             if (methodInfo.methodType() == BIDI_STREAMING) {
-                return BidiCallHandler.doAsyncCall(channel, methodDescriptor, args);
+                return BidiCallHandler.doAsyncCall(channel, methodDescriptor, args, callOptions);
             } else if (methodInfo.methodType() == SERVER_STREAMING) {
-                ServerStreamingHandler.doAsyncCall(channel, methodDescriptor, args);
+                ServerStreamingHandler.doAsyncCall(channel, methodDescriptor, args, callOptions);
                 return null;
             } else if (methodInfo.methodType() == CLIENT_STREAMING) {
-                return ClientStreamingHandler.doAsyncCall(channel, methodDescriptor);
+                return ClientStreamingHandler.doAsyncCall(channel, methodDescriptor, callOptions);
             } else if (methodInfo.methodType() == UNARY) {
                 if (methodInfo.async()) {
-                    UnaryCallHandler.doAsyncCall(channel, methodDescriptor, args);
+                    UnaryCallHandler.doAsyncCall(channel, methodDescriptor, args, callOptions);
                     return null;
                 } else {
-                    return UnaryCallHandler.doBlockingCall(channel, methodDescriptor, args);
+                    return UnaryCallHandler.doBlockingCall(channel, methodDescriptor, args, callOptions);
                 }
             } else {
                 throw new MicroServiceException("Can not handle the method [ " + methodInfo + " ]");
