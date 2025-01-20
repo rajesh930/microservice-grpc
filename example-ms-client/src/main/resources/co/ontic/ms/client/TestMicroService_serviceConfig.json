@@ -1,0 +1,19 @@
+{
+  "methodConfig": [
+    {
+      "name": [
+        {
+          "service": "TestMicroService"
+        }
+      ],
+      "hedgingPolicy": {
+        "maxAttempts": 3.0,
+        "hedgingDelay": "1s"
+      }
+    }
+  ],
+  "retryThrottling": {
+    "maxTokens": 10.0,
+    "tokenRatio": 0.1
+  }
+}

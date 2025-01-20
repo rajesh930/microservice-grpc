@@ -12,7 +12,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author rajesh
  * @since 20/01/25 13:06
  */
-@SpringBootApplication
+@SuppressWarnings("SpringComponentScan")
+@SpringBootApplication(scanBasePackages = {"do_not_scan"})
 public class HelloClientProto implements CommandLineRunner {
 
     public static void main(String[] args) {
@@ -24,15 +25,18 @@ public class HelloClientProto implements CommandLineRunner {
         MicroServiceClient<Greeter> greeter = new MicroServiceClient<>(Greeter.class);
         String name = "fdjhDDJHSDHSD";
         System.out.println("Will try to greet " + name);
-        HelloRequest request = HelloRequest.newBuilder().setName(name).build();
         HelloReply response;
-        try {
-            response = greeter.get().sayHello(request);
-        } catch (StatusRuntimeException e) {
-            //noinspection CallToPrintStackTrace
-            e.printStackTrace();
-            return;
+        for (int i = 0; i < 50; i++) {
+            String userId = name + " " + i;
+            HelloRequest request = HelloRequest.newBuilder().setName(userId).build();
+            try {
+                response = greeter.get().sayHello(request);
+            } catch (StatusRuntimeException e) {
+                //noinspection CallToPrintStackTrace
+                e.printStackTrace();
+                return;
+            }
+            System.out.println("Greeting: " + response.getMessage());
         }
-        System.out.println("Greeting: " + response.getMessage());
     }
 }

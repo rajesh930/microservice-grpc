@@ -1,0 +1,21 @@
+{
+  "methodConfig": [
+    {
+      "name": [
+        {
+          "service": "helloworld.Greeter"
+        }
+      ],
+      "waitForReady": true,
+      "retryPolicy": {
+        "maxAttempts": 5.0,
+        "initialBackoff": "2s",
+        "maxBackoff": "300s",
+        "backoffMultiplier": 2.0,
+        "retryableStatusCodes": [
+          "UNAVAILABLE"
+        ]
+      }
+    }
+  ]
+}

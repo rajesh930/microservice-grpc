@@ -11,6 +11,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 
 /**
@@ -23,8 +25,19 @@ public class MicroServiceClientAutoConfig {
 
     @Bean
     @ConditionalOnMissingBean
-    public ServiceRegistry microServiceRegistry(MicroServiceClientProps microServiceClientProps) {
-        return new ApplicationPropsBasedServiceRegistry(microServiceClientProps.getServiceRegistry());
+    public ServiceRegistry microServiceRegistry(MicroServiceClientProps microServiceClientProps) throws IOException {
+        Map<String, ServiceEndpoint> serviceRegistry = microServiceClientProps.getServiceRegistry();
+        if (serviceRegistry != null) {
+            for (Map.Entry<String, ServiceEndpoint> entry : serviceRegistry.entrySet()) {
+                try (InputStream serviceConfig = MicroServiceClientAutoConfig.class.getResourceAsStream(entry.getKey() + "_serviceConfig.json")) {
+                    if (serviceConfig != null) {
+                        //noinspection unchecked
+                        entry.getValue().setServiceConfig(jacksonObjectMapper().readValue(serviceConfig, Map.class));
+                    }
+                }
+            }
+        }
+        return new ApplicationPropsBasedServiceRegistry(serviceRegistry);
     }
 
     @Bean

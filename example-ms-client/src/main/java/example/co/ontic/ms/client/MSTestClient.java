@@ -19,8 +19,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author rajesh
  * @since 17/01/25 22:59
  */
-@SuppressWarnings("CallToPrintStackTrace")
-@SpringBootApplication
+@SuppressWarnings({"CallToPrintStackTrace", "SpringComponentScan"})
+@SpringBootApplication(scanBasePackages = {"do_not_scan"})
 public class MSTestClient implements CommandLineRunner {
 
     @Bean
