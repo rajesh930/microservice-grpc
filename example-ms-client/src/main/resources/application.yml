@@ -6,3 +6,5 @@ ontic:
           address: 'localhost:50051'
         contextService:
           address: 'localhost:50051'
+        '[helloworld.Greeter]':
+          address: 'localhost:50051'

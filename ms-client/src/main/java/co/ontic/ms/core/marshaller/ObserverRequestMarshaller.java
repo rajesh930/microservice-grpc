@@ -32,7 +32,7 @@ public class ObserverRequestMarshaller implements MethodDescriptor.Marshaller<Re
     }
 
     private SerDe createSerDeForType(Type type) {
-        if (type instanceof Class<?> && ((Class<?>) type).isAssignableFrom(Message.class)) {
+        if (type instanceof Class<?> && Message.class.isAssignableFrom((Class<?>) type)) {
             //noinspection unchecked
             return new ProtobufSerDe((Class<? extends Message>) type);
         } else {

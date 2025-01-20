@@ -40,7 +40,7 @@ public class MethodRequestMarshaller implements Marshaller<Request> {
                 (Class<?>) type :
                 (Class<?>) ((ParameterizedType) type).getRawType())) {
             return null;
-        } else if (type instanceof Class<?> && ((Class<?>) type).isAssignableFrom(Message.class)) {
+        } else if (type instanceof Class<?> && Message.class.isAssignableFrom((Class<?>) type)) {
             //noinspection unchecked
             return new ProtobufSerDe((Class<? extends Message>) type);
         } else {
